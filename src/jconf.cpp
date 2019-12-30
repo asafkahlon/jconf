@@ -19,7 +19,7 @@ Config::Config(std::string storage_path, std::string schema_path)
 void Config::load()
 {
     m_mutex.lock();
-    
+
     std::ifstream(m_storage_path) >> m_data;
     std::ifstream(m_schema_path) >> m_schema;
 
@@ -85,7 +85,7 @@ json Config::get(const std::string &key)
     m_mutex.lock();
 
     json ret;
-    
+
     if (key.compare("/") == 0)
     {
         ret = m_data;
@@ -110,6 +110,7 @@ void Config::remove(json &j, const std::string &key)
 {
     m_mutex.lock();
 
+    j.erase(key);
     for (auto it = j.begin(); it != j.end(); ++it)
     {
         // Keep recursing if the iterator is an array/object to remove nested
@@ -117,19 +118,6 @@ void Config::remove(json &j, const std::string &key)
         if (it->is_structured())
         {
             remove(*it, key);
-        }
-
-        try
-        {
-            if (0 == it.key().compare(key))
-            {
-                j.erase(it);
-            }
-        }
-        // Only json objects have keys, items without values or items with
-        // multiple values will throw an exception so we ignore them
-        catch (const invalid_iterator &e)
-        {
         }
     }
 
